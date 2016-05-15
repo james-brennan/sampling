@@ -14,6 +14,7 @@
 #include <random>
 #include <numeric>
 #include <algorithm>    // std::min_element, std::max_element
+#include <gsl/gsl_statistics.h> // for percentiles calculation
 
 using namespace std;
 
@@ -209,7 +210,7 @@ sampleRaster loadNumSamples(std::string filename)
 }
 
 
-vector<float> doSamplingModel(vector<float> cldsXY,
+vector<double> doSamplingModel(vector<float> cldsXY,
 					 int MaskValue, double daysBetweenSamples)
 {
 	/*
@@ -244,7 +245,7 @@ vector<float> doSamplingModel(vector<float> cldsXY,
 	else {
 		wegetSamples = 1;
 	}
-	vector<float> daysSample;
+	vector<double> daysSample;
 	const int mdays[12] = {31*wegetSamples,
 						   28*wegetSamples,
 						   31*wegetSamples,
@@ -375,10 +376,10 @@ vector<float> doSamplingModel(vector<float> cldsXY,
 	    	}
 	    }
 	    // return days between before and after
-	    float days;
+	    double days;
 	    //cout << "samplesperday: " << wegetSamples << endl;
 	    //cout << "before and after: " << before << " " << after << endl;
-	    days = (float) after/wegetSamples + (float) before/wegetSamples;
+	    days = (double) after/wegetSamples + (double) before/wegetSamples;
 	    // remember to convert between samplingRate and actual days
 	    //cout << days << endl;
 	    daysSample.push_back(days);
@@ -425,15 +426,18 @@ vector<double> runModel( vector<cloudiness_month> clds, maskRaster msk,
 {
 	/*
 	This sets up the output and runs the model on the spatial grid
+
+	Returns 10% percentiles of the sample
 	*/
-	vector<double> output;
+	vector<double> quantiles;
 	int prog=0;
+	double perc;
 	for (int loc=0; loc<clds[0].nXSize * clds[0].nYSize; loc++)
 	{
 
 			int maskV=0;
 			int nSamples=0;
-			vector<float> out;
+			vector<double> out;
 			vector<float> localCloudiness;
 			double daysBetweenSamples;
 			// only do if landmask is 1
@@ -461,17 +465,21 @@ vector<double> runModel( vector<cloudiness_month> clds, maskRaster msk,
 				daysBetweenSamples = (double) 365.0/nSamples; 
 				out = doSamplingModel(localCloudiness,
 								 maskV, daysBetweenSamples);
-				// get mean of the output
-				// from
-				// http://stackoverflow.com/questions/7616511/calculate-mean-and-standard-deviation-from-a-vector-of-samples-in-c-using-boos
+				/*
+				Calculate some statistics
+				mean, std and 10 percentiles with gsl
+				*/
+				sort(out.begin(), out.end()); 
 				double sum = accumulate(out.begin(), out.end(), 0.0);
-				double mean = sum / out.size();
-				//for (int i=0; i<out.size(); i++)
-				//{
-				//	sum += out[i];
-				//	count++;
-				//}
-				output.push_back(mean);
+				double mean = sum / out.size();	
+				/*
+				Calculate percentiles
+				*/
+				for (double p=0; p<1.1; p+=0.1) {
+					perc = gsl_stats_quantile_from_sorted_data(out, 1,out.size(), p);
+					cout << "percentile value: " << p << " " << perc << endl;
+					quantiles.push_back(perc);
+				}
 				prog++;
 			}
 			else
