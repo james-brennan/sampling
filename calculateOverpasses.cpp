@@ -1,4 +1,5 @@
 
+
 /*
 
     Script used to calculate overpasses
@@ -176,7 +177,7 @@ maskRaster loadMask()
     GDALDataset  *poDataset;
     GDALAllRegister();
     std::string filename;
-    filename = "0.25_LW_mask.tif";
+    filename = "2_LW_mask.tif";
     const char * fc = filename.c_str();
     poDataset = (GDALDataset *) GDALOpen( fc, GA_ReadOnly );
     //cout << poDataset << endl;
@@ -241,7 +242,7 @@ void saveDS(vector<int> outData, string outfilename) {
     GDALRasterBand *inBand;
     GDALRasterBand *outBand;
     std::string srcfilename;
-    srcfilename = "0.25_LW_mask.tif";
+    srcfilename = "2_LW_mask.tif";
     const char * srcfc = srcfilename.c_str();
     // get size info
     int nXSize;
