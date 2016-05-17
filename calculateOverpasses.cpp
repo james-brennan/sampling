@@ -177,7 +177,7 @@ maskRaster loadMask()
     GDALDataset  *poDataset;
     GDALAllRegister();
     std::string filename;
-    filename = "2_LW_mask.tif";
+    filename = "0.5_LW_mask.tif";
     const char * fc = filename.c_str();
     poDataset = (GDALDataset *) GDALOpen( fc, GA_ReadOnly );
     //cout << poDataset << endl;
@@ -242,7 +242,7 @@ void saveDS(vector<int> outData, string outfilename) {
     GDALRasterBand *inBand;
     GDALRasterBand *outBand;
     std::string srcfilename;
-    srcfilename = "2_LW_mask.tif";
+    srcfilename = "0.5_LW_mask.tif";
     const char * srcfc = srcfilename.c_str();
     // get size info
     int nXSize;
